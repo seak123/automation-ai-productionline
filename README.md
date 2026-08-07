@@ -27,20 +27,19 @@ AI, abilities, navigation) so each can be tuned or replaced without disturbing t
 
 ## 🎯 The loop
 
-```
-   +------------------+     assign      +--------------------+
-   |  Work Dispatch   |---------------->|  Worker (Pet AI)   |
-   |  (station-side)  |<--- report -----|  Behavior Tree      |
-   +--------+---------+                 +---------+----------+
-            | produces                            | runs tasks
-            v                                      v
-      FWorkOrder queue              +--------------+---------------+
-      (where + what, as a tag)      |  MoveTo task  -> Navigation  |
-                                    |  PerformWork  -> GAS ability  |
-                                    +--------------+---------------+
-                                                   |
-                                                   v  ability applies
-                                        GameplayEffect (+output / -input / cooldown)
+```mermaid
+flowchart TD
+    Dispatch["<b>Work Dispatch</b><br/>station-side · owns FWorkOrder queue<br/><i>what, not how</i>"]
+    Dispatch -->|assign order| Worker["<b>Worker AI</b><br/>Behavior Tree · <i>how</i>"]
+    Worker -->|report done / fail| Dispatch
+    Worker --> Move["MoveTo task"]
+    Worker --> Perform["PerformWork task"]
+    Move -->|path| Nav[["Navigation"]]
+    Perform -->|activate by tag| GAS[["GAS ability<br/>UGA_Produce"]]
+    GAS -->|applies| GE[/"GameplayEffect<br/>+output · −input · cooldown"/]
+
+    classDef seam fill:#1f6feb22,stroke:#1f6feb,stroke-width:1px;
+    class Nav,GAS seam;
 ```
 
 - **Work dispatch** (station-side) owns a queue of `FWorkOrder`s and assigns them to idle workers.
