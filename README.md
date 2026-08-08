@@ -55,6 +55,41 @@ can change without touching GAS.
 
 ---
 
+## 🎮 Gameplay: skill-typed work & headcount matching
+
+Beneath the dispatch loop is the gameplay that makes a *production line* feel alive: work is
+**typed by skill**, each job needs a **headcount** of workers, and idle creatures are matched
+from a pool by the skill they possess.
+
+- **Skill types** — fire (smelt), handwork (craft), water, harvest, haul. A creature only takes
+  work it's skilled for.
+- **Headcount** — a job can require several workers; the matcher fills each job until it's
+  staffed or that skill's pool is empty.
+- **Continuous work** — haul and harvest let a worker keep going after finishing, instead of
+  dropping back to idle, which avoids constant re-pathing and keeps the line flowing.
+
+```cpp
+// WorkSkillMatcher — match idle workers to pending jobs, per skill, filling each job's headcount.
+void UWorkSkillMatcher::MatchOnce()
+{
+    for (auto& Pair : PendingBySkill)
+    {
+        const EWorkSkill Skill = Pair.Key;
+        for (FWorkInfo& Work : Pair.Value)
+        {
+            FGuid Worker;
+            while (!Work.HeadCount.FullyAssigned() && PopAvailableWorker(Skill, Worker))
+                AssignWorkerToWork(Work, Worker);        // staff this job from the skill pool
+        }
+    }
+}
+```
+
+See [`src/WorkSkillMatcher.h`](src/WorkSkillMatcher.h). Once a worker is assigned, it runs the
+Behavior Tree — **MoveTo → PerformWork** — described in §1–§3 below.
+
+---
+
 ## 1. Work dispatch — separation of "what" from "how"
 
 **Decision.** A work order carries only **where** (`WorkSiteLocation`) and **what** (a Gameplay
@@ -174,6 +209,7 @@ separation.
 automation-ai-productionline/
 ├── README.md
 └── src/
+    ├── WorkSkillMatcher.h         Gameplay: skill-typed work + headcount matching
     ├── WorkDispatchComponent.h    Work order + station-side dispatch (what, not how)
     ├── WorkDispatchComponent.cpp  Assign to idle workers; re-queue on failure (self-healing)
     ├── BTTask_MoveToWorkSite.h    Navigation seam: move to site, fast-fail if unreachable
