@@ -15,10 +15,16 @@
 
 ## 📌 Context
 
-This distills a feature I built in a shipped commercial title: players place production stations
-and assign creatures to work them; each creature then runs the line autonomously. The interesting
-engineering is not any single action — it's the **clean seam between four systems** (work dispatch,
-AI, abilities, navigation) so each can be tuned or replaced without disturbing the others.
+This distills a feature I built on **_Light of Motiram_** (Tencent, Unreal Engine · C++): players
+place production stations and assign creatures to work them; each creature then runs the line
+autonomously. The interesting engineering is not any single action — it's the **clean seam between
+four systems** (work dispatch, AI, abilities, navigation) so each can be tuned or replaced without
+disturbing the others.
+
+> **Related systems I owned on the same title:** the stations these creatures work are build
+> pieces from [data-oriented-building](https://github.com/seak123/data-oriented-building), and
+> players sail player-built craft in
+> [watercraft-physics](https://github.com/seak123/watercraft-physics).
 
 > **This repository is a clean-room reference.** Original code written for portfolio purposes,
 > reduced to the load-bearing structure. It contains **no proprietary or third-party source**.
