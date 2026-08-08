@@ -85,8 +85,33 @@ void UWorkSkillMatcher::MatchOnce()
 }
 ```
 
-See [`src/WorkSkillMatcher.h`](src/WorkSkillMatcher.h). Once a worker is assigned, it runs the
-Behavior Tree — **MoveTo → PerformWork** — described in §1–§3 below.
+**Why the loop is driven by jobs, not workers.** With a worker-driven loop, whichever worker is
+visited first grabs the nearest job — so multi-worker jobs stay perpetually understaffed, and the
+player sees a swarm of creatures fussing over trivial tasks while the big project sits untouched.
+Iterating jobs and filling each headcount fixes that by construction.
+
+**Work targets are not one kind of thing** — the most underestimated complexity here. A target may
+be an Actor (storage box, mineral node), a foliage instance (wild tree, stump), pure data
+(a global crop), or entirely **virtual** — a watering job has no physical entity to walk up to at
+all. They have to be abstracted behind one *locatable + validatable* interface so the AI can treat
+them uniformly:
+
+```cpp
+// 目标类型 / Work target types — Actors, foliage instances, pure data, and virtual targets
+enum class EWorkTargetType : uint8
+{
+    NewPlant, DroppedItem, VirtualDrop, WorkBuild, FoliageInstance, GlobalCrop,
+    BuildPiece, ContainerBox, WateringVirtual, RollingLog, Stump, Mineral,
+};
+```
+
+Two behavioural rules keep a line feeling alive rather than robotic: **continuous work** (haul,
+gather) skips the return-to-idle so a hauler doesn't idle and re-path between every two crates;
+and **endless work** (collecting honey) has no completion at all — it runs until its conditions
+stop holding, e.g. the hive empties or night falls.
+
+See [`src/WorkSkillMatcher.h`](src/WorkSkillMatcher.h). Once assigned, a worker runs the Behavior
+Tree — **MoveTo → PerformWork** — described in §1–§3 below.
 
 ---
 
